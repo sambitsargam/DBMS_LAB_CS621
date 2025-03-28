@@ -1,0 +1,68 @@
+-- Table: Admin
+CREATE TABLE Admin (
+    AdminID INT AUTO_INCREMENT PRIMARY KEY,
+    Username VARCHAR(100) NOT NULL UNIQUE,
+    Password VARCHAR(100) NOT NULL
+);
+
+-- Table: Agent
+CREATE TABLE Agent (
+    AgentID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Contact VARCHAR(15) NOT NULL,
+    Email VARCHAR(100) NOT NULL
+);
+
+-- Table: Owner
+CREATE TABLE Owner (
+    OwnerID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Contact VARCHAR(15) NOT NULL,
+    Email VARCHAR(100) NOT NULL
+);
+
+-- Table: Property
+CREATE TABLE Property (
+    PropertyID INT AUTO_INCREMENT PRIMARY KEY,
+    OwnerID INT NOT NULL,
+    Address VARCHAR(255) NOT NULL,
+    City VARCHAR(100) NOT NULL,
+    Locality VARCHAR(100) NOT NULL,
+    Size_sqft INT NOT NULL,
+    Bedrooms INT NOT NULL,
+    YearOfConstruction YEAR NOT NULL,
+    SellingPrice DECIMAL(12,2) NULL,
+    RentAmount DECIMAL(12,2) NULL,
+    IsAvailableForSale BOOLEAN NOT NULL,
+    IsAvailableForRent BOOLEAN NOT NULL,
+    FOREIGN KEY (OwnerID) REFERENCES Owner(OwnerID)
+);
+
+-- Table: Sales
+CREATE TABLE Sales (
+    SalesID INT AUTO_INCREMENT PRIMARY KEY,
+    PropertyID INT NOT NULL,
+    AgentID INT NOT NULL,
+    OwnerID INT NOT NULL,
+    SalePrice DECIMAL(12,2) NOT NULL,
+    SaleDate DATE NOT NULL,
+    MarketTime INT NOT NULL, -- in days
+    FOREIGN KEY (PropertyID) REFERENCES Property(PropertyID),
+    FOREIGN KEY (AgentID) REFERENCES Agent(AgentID),
+    FOREIGN KEY (OwnerID) REFERENCES Owner(OwnerID)
+);
+
+-- Table: Rental
+CREATE TABLE Rental (
+    RentalID INT AUTO_INCREMENT PRIMARY KEY,
+    PropertyID INT NOT NULL,
+    AgentID INT NOT NULL,
+    OwnerID INT NOT NULL,
+    RentAmount DECIMAL(12,2) NOT NULL,
+    RentalStartDate DATE NOT NULL,
+    RentalEndDate DATE NULL, -- NULL if ongoing
+    MarketTime INT NOT NULL, -- in days
+    FOREIGN KEY (PropertyID) REFERENCES Property(PropertyID),
+    FOREIGN KEY (AgentID) REFERENCES Agent(AgentID),
+    FOREIGN KEY (OwnerID) REFERENCES Owner(OwnerID)
+);
