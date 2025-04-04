@@ -4,9 +4,16 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const cors = require('cors');
+
 
 const app = express();
 app.use(bodyParser.json());
+
+app.use(cors({
+    origin: 'http://localhost:3001', // or use "*" to allow all origins (not recommended for prod)
+    credentials: true // if you're using cookies/sessions
+  }));
 
 // Configure session middleware
 app.use(session({
