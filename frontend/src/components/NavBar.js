@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 
 function NavBar() {
   return (
-    <nav className="navbar">
-      <ul>
-        <li><Link to="/dashboard">Dashboard</Link></li>
-        <li><Link to="/agents">Agents</Link></li>
-        <li><Link to="/owners">Owners</Link></li>
-        <li><Link to="/properties">Properties</Link></li>
-        <li><Link to="/sales">Sales</Link></li>
-        <li><Link to="/rentals">Rentals</Link></li>
+    <nav className="navbar mb-3">
+      <ul className="d-flex">
+        <li className="me-3"><Link to="/dashboard">Dashboard</Link></li>
+        <li className="me-3"><Link to="/agents">Agents</Link></li>
+        <li className="me-3"><Link to="/owners">Owners</Link></li>
+        <li className="me-3"><Link to="/properties">Properties</Link></li>
+        <li className="me-3"><Link to="/sales">Sales</Link></li>
+        <li className="me-3"><Link to="/rentals">Rentals</Link></li>
       </ul>
     </nav>
   );

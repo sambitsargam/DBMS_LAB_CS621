@@ -17,6 +17,7 @@ function Properties() {
     IsAvailableForSale: true,
     IsAvailableForRent: true
   });
+  const [filterText, setFilterText] = useState('');
   const [error, setError] = useState('');
 
   const fetchProperties = async () => {
@@ -68,111 +69,176 @@ function Properties() {
     }
   };
 
+  const filteredProperties = properties.filter((property) =>
+    property.Address.toLowerCase().includes(filterText.toLowerCase()) ||
+    property.City.toLowerCase().includes(filterText.toLowerCase()) ||
+    property.Locality.toLowerCase().includes(filterText.toLowerCase())
+  );
+
   return (
-    <div className="properties-container">
+    <div className="container-box">
       <NavBar />
       <h2>Manage Properties</h2>
       {error && <p className="error">{error}</p>}
-      <form onSubmit={handleAddProperty}>
-        <input
-          type="number"
-          name="OwnerID"
-          placeholder="Owner ID"
-          value={newProperty.OwnerID}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="Address"
-          placeholder="Address"
-          value={newProperty.Address}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="City"
-          placeholder="City"
-          value={newProperty.City}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="Locality"
-          placeholder="Locality"
-          value={newProperty.Locality}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="Size_sqft"
-          placeholder="Size (sqft)"
-          value={newProperty.Size_sqft}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="Bedrooms"
-          placeholder="Bedrooms"
-          value={newProperty.Bedrooms}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="YearOfConstruction"
-          placeholder="Year of Construction"
-          value={newProperty.YearOfConstruction}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="SellingPrice"
-          placeholder="Selling Price"
-          value={newProperty.SellingPrice}
-          onChange={handleChange}
-        />
-        <input
-          type="number"
-          name="RentAmount"
-          placeholder="Rent Amount"
-          value={newProperty.RentAmount}
-          onChange={handleChange}
-        />
-        <div>
-          <label>
-            Available For Sale:
-            <select name="IsAvailableForSale" value={newProperty.IsAvailableForSale} onChange={handleChange}>
-              <option value={true}>Yes</option>
-              <option value={false}>No</option>
-            </select>
-          </label>
+      
+      <form onSubmit={handleAddProperty} className="mb-4">
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="OwnerID"
+            className="form-control"
+            placeholder="Owner ID"
+            value={newProperty.OwnerID}
+            onChange={handleChange}
+            required
+          />
         </div>
-        <div>
-          <label>
-            Available For Rent:
-            <select name="IsAvailableForRent" value={newProperty.IsAvailableForRent} onChange={handleChange}>
-              <option value={true}>Yes</option>
-              <option value={false}>No</option>
-            </select>
-          </label>
+        <div className="form-group mb-2">
+          <input
+            type="text"
+            name="Address"
+            className="form-control"
+            placeholder="Address"
+            value={newProperty.Address}
+            onChange={handleChange}
+            required
+          />
         </div>
-        <button type="submit">Add Property</button>
+        <div className="form-group mb-2">
+          <input
+            type="text"
+            name="City"
+            className="form-control"
+            placeholder="City"
+            value={newProperty.City}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="text"
+            name="Locality"
+            className="form-control"
+            placeholder="Locality"
+            value={newProperty.Locality}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="Size_sqft"
+            className="form-control"
+            placeholder="Size (sqft)"
+            value={newProperty.Size_sqft}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="Bedrooms"
+            className="form-control"
+            placeholder="Bedrooms"
+            value={newProperty.Bedrooms}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="YearOfConstruction"
+            className="form-control"
+            placeholder="Year of Construction"
+            value={newProperty.YearOfConstruction}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="SellingPrice"
+            className="form-control"
+            placeholder="Selling Price"
+            value={newProperty.SellingPrice}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="RentAmount"
+            className="form-control"
+            placeholder="Rent Amount"
+            value={newProperty.RentAmount}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="form-group mb-2">
+          <label>Available For Sale: </label>
+          <select name="IsAvailableForSale" className="form-select" value={newProperty.IsAvailableForSale} onChange={handleChange}>
+            <option value={true}>Yes</option>
+            <option value={false}>No</option>
+          </select>
+        </div>
+        <div className="form-group mb-2">
+          <label>Available For Rent: </label>
+          <select name="IsAvailableForRent" className="form-select" value={newProperty.IsAvailableForRent} onChange={handleChange}>
+            <option value={true}>Yes</option>
+            <option value={false}>No</option>
+          </select>
+        </div>
+        <button type="submit" className="btn btn-primary">Add Property</button>
       </form>
-      <h3>Property List</h3>
-      <ul>
-        {properties.map((property) => (
-          <li key={property.PropertyID}>
-            {property.Address} - {property.City} - {property.Locality}{' '}
-            <button onClick={() => handleDeleteProperty(property.PropertyID)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+      
+      <input
+        type="text"
+        className="form-control filter-input"
+        placeholder="Filter by Address, City, or Locality..."
+        value={filterText}
+        onChange={(e) => setFilterText(e.target.value)}
+      />
+      
+      <div className="table-container mt-3">
+        <table className="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Property ID</th>
+              <th>Owner ID</th>
+              <th>Address</th>
+              <th>City</th>
+              <th>Locality</th>
+              <th>Bedrooms</th>
+              <th>Price/Rent</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProperties.map((property) => (
+              <tr key={property.PropertyID}>
+                <td>{property.PropertyID}</td>
+                <td>{property.OwnerID}</td>
+                <td>{property.Address}</td>
+                <td>{property.City}</td>
+                <td>{property.Locality}</td>
+                <td>{property.Bedrooms}</td>
+                <td>
+                  {property.IsAvailableForSale ? `Rs. ${property.SellingPrice}` : ''}
+                  {property.IsAvailableForRent ? ` / Rs. ${property.RentAmount}` : ''}
+                </td>
+                <td>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteProperty(property.PropertyID)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

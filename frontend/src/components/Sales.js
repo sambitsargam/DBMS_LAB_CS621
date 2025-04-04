@@ -12,6 +12,7 @@ function Sales() {
     SaleDate: '',
     MarketTime: ''
   });
+  const [filterText, setFilterText] = useState('');
   const [error, setError] = useState('');
 
   const fetchSales = async () => {
@@ -58,71 +59,127 @@ function Sales() {
     }
   };
 
+  const filteredSales = sales.filter((sale) =>
+    sale.SaleDate.toString().toLowerCase().includes(filterText.toLowerCase()) ||
+    sale.SalePrice.toString().toLowerCase().includes(filterText.toLowerCase())
+  );
+
   return (
-    <div className="sales-container">
+    <div className="container-box">
       <NavBar />
       <h2>Manage Sales Transactions</h2>
       {error && <p className="error">{error}</p>}
-      <form onSubmit={handleAddSale}>
-        <input
-          type="number"
-          name="PropertyID"
-          placeholder="Property ID"
-          value={newSale.PropertyID}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="AgentID"
-          placeholder="Agent ID"
-          value={newSale.AgentID}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="OwnerID"
-          placeholder="Owner ID"
-          value={newSale.OwnerID}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="SalePrice"
-          placeholder="Sale Price"
-          value={newSale.SalePrice}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="date"
-          name="SaleDate"
-          placeholder="Sale Date"
-          value={newSale.SaleDate}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="MarketTime"
-          placeholder="Market Time (days)"
-          value={newSale.MarketTime}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit">Add Sale</button>
+      
+      <form onSubmit={handleAddSale} className="mb-4">
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="PropertyID"
+            className="form-control"
+            placeholder="Property ID"
+            value={newSale.PropertyID}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="AgentID"
+            className="form-control"
+            placeholder="Agent ID"
+            value={newSale.AgentID}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="OwnerID"
+            className="form-control"
+            placeholder="Owner ID"
+            value={newSale.OwnerID}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="SalePrice"
+            className="form-control"
+            placeholder="Sale Price"
+            value={newSale.SalePrice}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="date"
+            name="SaleDate"
+            className="form-control"
+            placeholder="Sale Date"
+            value={newSale.SaleDate}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-2">
+          <input
+            type="number"
+            name="MarketTime"
+            className="form-control"
+            placeholder="Market Time (days)"
+            value={newSale.MarketTime}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary">Add Sale</button>
       </form>
-      <h3>Sales List</h3>
-      <ul>
-        {sales.map((sale) => (
-          <li key={sale.SalesID}>
-            Sale ID: {sale.SalesID} - Property ID: {sale.PropertyID} - Sale Price: {sale.SalePrice}{' '}
-            <button onClick={() => handleDeleteSale(sale.SalesID)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+      
+      <input
+        type="text"
+        className="form-control filter-input"
+        placeholder="Filter by Sale Date or Price..."
+        value={filterText}
+        onChange={(e) => setFilterText(e.target.value)}
+      />
+      
+      <div className="table-container mt-3">
+        <table className="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Sales ID</th>
+              <th>Property ID</th>
+              <th>Agent ID</th>
+              <th>Owner ID</th>
+              <th>Sale Price</th>
+              <th>Sale Date</th>
+              <th>Market Time (days)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredSales.map((sale) => (
+              <tr key={sale.SalesID}>
+                <td>{sale.SalesID}</td>
+                <td>{sale.PropertyID}</td>
+                <td>{sale.AgentID}</td>
+                <td>{sale.OwnerID}</td>
+                <td>{sale.SalePrice}</td>
+                <td>{sale.SaleDate}</td>
+                <td>{sale.MarketTime}</td>
+                <td>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteSale(sale.SalesID)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

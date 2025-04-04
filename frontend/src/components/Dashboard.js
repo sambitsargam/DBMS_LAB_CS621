@@ -16,11 +16,11 @@ function Dashboard() {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="container-box">
       <NavBar />
       <h1>Admin Dashboard</h1>
-      <p>Welcome to the Admin Dashboard. Use the navigation links to manage data.</p>
-      <button onClick={handleLogout}>Logout</button>
+      <p>Welcome to the Admin Dashboard. Use the navigation links above to manage your data.</p>
+      <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
     </div>
   );
 }
