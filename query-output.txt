@@ -1,0 +1,115 @@
+mysql> use newdb;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> SELECT *
+    -> FROM Property
+    -> WHERE City = 'Guwahati'
+    ->   AND YearOfConstruction > 2023
+    ->   AND IsAvailableForRent = TRUE;
++------------+---------+----------------+----------+------------+-----------+----------+--------------------+--------------+------------+--------------------+--------------------+
+| PropertyID | OwnerID | Address        | City     | Locality   | Size_sqft | Bedrooms | YearOfConstruction | SellingPrice | RentAmount | IsAvailableForSale | IsAvailableForRent |
++------------+---------+----------------+----------+------------+-----------+----------+--------------------+--------------+------------+--------------------+--------------------+
+|          4 |       4 | 104 Cedar St   | Guwahati | Locality D |      1800 |        4 |               2024 |   2500000.00 |   11000.00 |                  1 |                  1 |
+|          7 |       7 | 107 Walnut St  | Guwahati | Locality G |      2400 |        5 |               2024 |   4000000.00 |   14000.00 |                  1 |                  1 |
+|         12 |      12 | 112 Oak Ave    | Guwahati | Locality L |      3400 |        4 |               2024 |   6500000.00 |   19000.00 |                  1 |                  1 |
+|         18 |      18 | 118 Cherry Ave | Guwahati | Locality R |      4600 |        7 |               2024 |   9500000.00 |   25000.00 |                  1 |                  1 |
++------------+---------+----------------+----------+------------+-----------+----------+--------------------+--------------+------------+--------------------+--------------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT Address
+    -> FROM Property
+    -> WHERE City = 'Guwahati'
+    ->   AND SellingPrice BETWEEN 1000000 AND 5000000;
++---------------+
+| Address       |
++---------------+
+| 101 Maple St  |
+| 102 Oak St    |
+| 103 Pine St   |
+| 104 Cedar St  |
+| 105 Birch St  |
+| 106 Spruce St |
+| 107 Walnut St |
+| 108 Cherry St |
+| 109 Elm St    |
++---------------+
+9 rows in set (0.00 sec)
+
+mysql> SELECT Address
+    -> FROM Property
+    -> WHERE Locality = 'G.S.Road'
+    ->   AND Bedrooms >= 2
+    ->   AND RentAmount < 15000
+    ->   AND IsAvailableForRent = TRUE;
+Empty set (0.00 sec)
+
+mysql> SELECT a.Name, SUM(s.SalePrice) AS TotalSales
+    -> FROM Sales s
+    -> JOIN Agent a ON s.AgentID = a.AgentID
+    -> WHERE YEAR(s.SaleDate) = 2024
+    -> GROUP BY a.Name
+    -> ORDER BY TotalSales DESC
+    -> LIMIT 1;
++----------+-------------+
+| Name     | TotalSales  |
++----------+-------------+
+| Agent 20 | 10500000.00 |
++----------+-------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT a.AgentID, a.Name, 
+    ->        AVG(s.SalePrice) AS AvgSalePrice,
+    ->        AVG(s.MarketTime) AS AvgMarketTime
+    -> FROM Sales s
+    -> JOIN Agent a ON s.AgentID = a.AgentID
+    -> WHERE YEAR(s.SaleDate) = 2024
+    -> GROUP BY a.AgentID, a.Name;
++---------+----------+-----------------+---------------+
+| AgentID | Name     | AvgSalePrice    | AvgMarketTime |
++---------+----------+-----------------+---------------+
+|       1 | Agent 1  |  1500000.000000 |       30.0000 |
+|       2 | Agent 2  |  1800000.000000 |       28.0000 |
+|       3 | Agent 3  |  2100000.000000 |       35.0000 |
+|       4 | Agent 4  |  2500000.000000 |       40.0000 |
+|       5 | Agent 5  |  3000000.000000 |       32.0000 |
+|       6 | Agent 6  |  3500000.000000 |       33.0000 |
+|       7 | Agent 7  |  4000000.000000 |       30.0000 |
+|       8 | Agent 8  |  4500000.000000 |       25.0000 |
+|       9 | Agent 9  |  5000000.000000 |       45.0000 |
+|      10 | Agent 10 |  5500000.000000 |       50.0000 |
+|      11 | Agent 11 |  6000000.000000 |       42.0000 |
+|      12 | Agent 12 |  6500000.000000 |       38.0000 |
+|      13 | Agent 13 |  7000000.000000 |       36.0000 |
+|      14 | Agent 14 |  7500000.000000 |       30.0000 |
+|      15 | Agent 15 |  8000000.000000 |       29.0000 |
+|      16 | Agent 16 |  8500000.000000 |       27.0000 |
+|      17 | Agent 17 |  9000000.000000 |       33.0000 |
+|      18 | Agent 18 |  9500000.000000 |       31.0000 |
+|      19 | Agent 19 | 10000000.000000 |       34.0000 |
+|      20 | Agent 20 | 10500000.000000 |       28.0000 |
++---------+----------+-----------------+---------------+
+20 rows in set (0.00 sec)
+
+mysql> SELECT *
+    -> FROM Property
+    -> WHERE SellingPrice = (SELECT MAX(SellingPrice) FROM Property);
++------------+---------+-------------+----------+------------+-----------+----------+--------------------+--------------+------------+--------------------+--------------------+
+| PropertyID | OwnerID | Address     | City     | Locality   | Size_sqft | Bedrooms | YearOfConstruction | SellingPrice | RentAmount | IsAvailableForSale | IsAvailableForRent |
++------------+---------+-------------+----------+------------+-----------+----------+--------------------+--------------+------------+--------------------+--------------------+
+|         20 |      20 | 120 Ash Ave | Guwahati | Locality T |      5000 |        8 |               2022 |  10500000.00 |   27000.00 |                  1 |                  1 |
++------------+---------+-------------+----------+------------+-----------+----------+--------------------+--------------+------------+--------------------+--------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT *
+    -> FROM Property
+    -> WHERE RentAmount = (SELECT MAX(RentAmount) FROM Property);
++------------+---------+-------------+----------+------------+-----------+----------+--------------------+--------------+------------+--------------------+--------------------+
+| PropertyID | OwnerID | Address     | City     | Locality   | Size_sqft | Bedrooms | YearOfConstruction | SellingPrice | RentAmount | IsAvailableForSale | IsAvailableForRent |
++------------+---------+-------------+----------+------------+-----------+----------+--------------------+--------------+------------+--------------------+--------------------+
+|         20 |      20 | 120 Ash Ave | Guwahati | Locality T |      5000 |        8 |               2022 |  10500000.00 |   27000.00 |                  1 |                  1 |
++------------+---------+-------------+----------+------------+-----------+----------+--------------------+--------------+------------+--------------------+--------------------+
+1 row in set (0.00 sec)
+
+mysql> 
