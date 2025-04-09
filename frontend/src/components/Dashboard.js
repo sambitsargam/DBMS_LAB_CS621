@@ -18,7 +18,7 @@ function Dashboard() {
   return (
     <div className="container-box">
       <NavBar />
-      <h1>Admin Dashboard</h1>
+      <h1>Admin Office Dashboard</h1>
       <p>Welcome to the Admin Dashboard. Use the navigation links above to manage your data.</p>
       <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
     </div>

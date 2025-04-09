@@ -26,7 +26,7 @@ function Login() {
 
   return (
     <div className="container-box">
-      <h2 className="mb-3">Admin Login</h2>
+      <h2 className="mb-3">Admin Office Login</h2>
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
         <div className="form-group mb-2">

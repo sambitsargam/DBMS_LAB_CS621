@@ -308,6 +308,123 @@ app.delete('/rentals/:id', isAuthenticated, async (req, res) => {
   }
 });
 
+// Reports Endpoints (add to app.js after other endpoints)
+
+// 1. Sales Report Endpoint: Detailed sales transactions by agent
+app.get('/reports/sales', isAuthenticated, async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT a.AgentID, a.Name AS AgentName, s.SaleDate, s.SalePrice, 
+             p.PropertyID, p.Address, p.City, p.Locality, p.Bedrooms, p.Size_sqft
+      FROM Sales s 
+      JOIN Agent a ON s.AgentID = a.AgentID
+      JOIN Property p ON s.PropertyID = p.PropertyID
+      ORDER BY a.AgentID, s.SaleDate;
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching sales report:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// 2. Rental Report Endpoint: Aggregated rental data by agent
+app.get('/reports/rentals', isAuthenticated, async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT a.AgentID, a.Name AS AgentName, COUNT(r.RentalID) AS RentalCount, 
+             SUM(r.RentAmount) AS TotalRent, 
+             GROUP_CONCAT(CONCAT('Rented on ', r.RentalStartDate) SEPARATOR '; ') AS RentalDates, 
+             GROUP_CONCAT(DISTINCT p.Locality SEPARATOR ', ') AS Areas
+      FROM Rental r
+      JOIN Agent a ON r.AgentID = a.AgentID
+      JOIN Property p ON r.PropertyID = p.PropertyID
+      GROUP BY a.AgentID, a.Name;
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching rental report:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Agent Report Endpoint: full report for a specific agent
+app.get('/reports/agent/:agentId', isAuthenticated, async (req, res) => {
+  const { agentId } = req.params;
+  try {
+    // Sales details for this agent
+    const [sales] = await pool.query(`
+      SELECT a.AgentID, a.Name AS AgentName, s.SaleDate, s.SalePrice, 
+             p.PropertyID, p.Address, p.City, p.Locality, p.Bedrooms, p.Size_sqft
+      FROM Sales s 
+      JOIN Agent a ON s.AgentID = a.AgentID
+      JOIN Property p ON s.PropertyID = p.PropertyID
+      WHERE a.AgentID = ?
+      ORDER BY s.SaleDate;
+    `, [agentId]);
+    
+    // Rental details for this agent
+    const [rentals] = await pool.query(`
+      SELECT a.AgentID, a.Name AS AgentName, r.RentalStartDate, r.RentAmount, r.MarketTime,
+             p.PropertyID, p.Address, p.City, p.Locality, p.Bedrooms
+      FROM Rental r 
+      JOIN Agent a ON r.AgentID = a.AgentID
+      JOIN Property p ON r.PropertyID = p.PropertyID
+      WHERE a.AgentID = ?
+      ORDER BY r.RentalStartDate;
+    `, [agentId]);
+
+    res.json({ sales, rentals });
+  } catch (error) {
+    console.error('Error fetching agent report:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Update Agent details by ID
+app.put('/agents/:id', isAuthenticated, async (req, res) => {
+  const agentId = req.params.id;
+  const { Name, Contact, Email } = req.body;
+  try {
+    const [result] = await pool.query(
+      'UPDATE Agent SET Name = ?, Contact = ?, Email = ? WHERE AgentID = ?',
+      [Name, Contact, Email, agentId]
+    );
+    if (result.affectedRows > 0) {
+      res.json({ message: 'Agent updated successfully' });
+    } else {
+      res.status(404).json({ message: 'Agent not found' });
+    }
+  } catch (error) {
+    console.error('Error updating agent:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+// Update Owner details by ID
+app.put('/owners/:id', isAuthenticated, async (req, res) => {
+  const ownerId = req.params.id;
+  const { Name, Contact, Email } = req.body;
+  try {
+    const [result] = await pool.query(
+      'UPDATE Owner SET Name = ?, Contact = ?, Email = ? WHERE OwnerID = ?',
+      [Name, Contact, Email, ownerId]
+    );
+    if (result.affectedRows > 0) {
+      res.json({ message: 'Owner updated successfully' });
+    } else {
+      res.status(404).json({ message: 'Owner not found' });
+    }
+  } catch (error) {
+    console.error('Error updating owner:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+
 // ----------------------
 // Start the Server
 // ----------------------
