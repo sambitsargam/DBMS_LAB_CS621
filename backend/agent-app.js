@@ -65,10 +65,10 @@ app.post('/agent/logout', (req, res) => {
 
 // Get all properties assigned to this agent
 app.get('/agent/properties', isAgentAuthenticated, async (req, res) => {
-  const agentId = req.session.agent.AgentID;
+ // const agentId = req.session.agent.AgentID;
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM Property WHERE AssignedAgentID = ?', [agentId]
+      'SELECT * FROM Property',
     );
     res.json(rows);
   } catch (err) {
@@ -85,7 +85,7 @@ app.post('/agent/property/:id/mark', isAgentAuthenticated, async (req, res) => {
 
   try {
     const [properties] = await pool.query(
-      'SELECT * FROM Property WHERE PropertyID = ? AND AssignedAgentID = ?', [id, agentId]
+      'SELECT * FROM Property WHERE PropertyID = ? ', [id]
     );
     if (!properties.length) {
       return res.status(404).json({ message: 'Property not found or not assigned to you' });

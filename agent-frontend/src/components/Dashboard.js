@@ -9,7 +9,7 @@ function Dashboard() {
 
   const fetchProperties = async () => {
     try {
-      const res = await axios.get('http://localhost:4000/agent/properties', { withCredentials: true });
+      const res = await axios.get('http://localhost:3002/agent/properties', { withCredentials: true });
       setProperties(res.data);
     } catch {
       navigate('/');
@@ -21,7 +21,7 @@ function Dashboard() {
   }, []);
 
   const handleLogout = async () => {
-    await axios.post('http://localhost:4000/agent/logout', {}, { withCredentials: true });
+    await axios.post('http://localhost:3002/agent/logout', {}, { withCredentials: true });
     navigate('/');
   };
 

@@ -12,7 +12,7 @@ function AgentLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:4000/agent/login', { email, contact }, { withCredentials: true });
+      await axios.post('http://localhost:3002/agent/login', { email, contact }, { withCredentials: true });
       navigate('/dashboard');
     } catch {
       setError('Invalid credentials');

@@ -13,7 +13,7 @@ function PropertyDetails() {
 
   const fetchProperty = async () => {
     try {
-      const res = await axios.get('http://localhost:4000/agent/properties', { withCredentials: true });
+      const res = await axios.get('http://localhost:3002/agent/properties', { withCredentials: true });
       const prop = res.data.find(p => p.PropertyID.toString() === id);
       if (!prop) navigate('/dashboard');
       setProperty(prop);
@@ -28,7 +28,7 @@ function PropertyDetails() {
 
   const handleUpdate = async () => {
     try {
-      const res = await axios.post(`http://localhost:4000/agent/property/${id}/mark`, { status, marketTime }, { withCredentials: true });
+      const res = await axios.post(`http://localhost:3002/agent/property/${id}/mark`, { status, marketTime }, { withCredentials: true });
       setMessage(res.data.message);
       fetchProperty();
     } catch (err) {
