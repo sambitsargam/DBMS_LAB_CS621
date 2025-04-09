@@ -33,119 +33,99 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-// Middleware to ensure an agent is logged in
+
+// Middleware to check agent authentication
 function isAgentAuthenticated(req, res, next) {
-  if (req.session && req.session.agent) {
-    return next();
-  }
-  res.status(401).json({ message: 'Unauthorized: Please login as agent' });
+  if (req.session && req.session.agent) return next();
+  return res.status(401).json({ message: 'Not logged in' });
 }
 
-// =====================
-// Agent Login & Logout
-// =====================
-
-// Agent login uses email and contact as the password
+// Agent login
 app.post('/agent/login', async (req, res) => {
   const { email, contact } = req.body;
   try {
     const [rows] = await pool.query('SELECT * FROM Agent WHERE Email = ?', [email]);
-    if (rows.length > 0) {
-      const agent = rows[0];
-      // For our agent system, we use the contact field as the “password”
-      if (agent.Contact === contact) {
-        req.session.agent = { AgentID: agent.AgentID, Email: agent.Email, Name: agent.Name };
-        return res.json({ message: 'Agent login successful', agent: req.session.agent });
-      }
+    if (rows.length && rows[0].Contact === contact) {
+      req.session.agent = { AgentID: rows[0].AgentID, Name: rows[0].Name, Email: rows[0].Email };
+      res.json({ message: 'Login successful', agent: req.session.agent });
+    } else {
+      res.status(401).json({ message: 'Invalid credentials' });
     }
-    return res.status(401).json({ message: 'Invalid login credentials' });
-  } catch (error) {
-    console.error('Error during agent login:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Login error' });
   }
 });
 
 // Agent logout
-app.post('/agent/logout', isAgentAuthenticated, (req, res) => {
-  req.session.destroy(err => {
-    if (err) return res.status(500).json({ message: 'Logout failed' });
-    res.json({ message: 'Agent logged out successfully' });
-  });
+app.post('/agent/logout', (req, res) => {
+  req.session.destroy();
+  res.json({ message: 'Logged out' });
 });
 
-// =============================
-// Agent-Only Endpoints
-// =============================
-
-// (1) Get properties assigned to the agent.
-// We assume that the Property table has an "AssignedAgentID" column.
+// Get all properties assigned to this agent
 app.get('/agent/properties', isAgentAuthenticated, async (req, res) => {
-  const agentID = req.session.agent.AgentID;
-  try {
-    const [rows] = await pool.query('SELECT * FROM Property WHERE AssignedAgentID = ?', [agentID]);
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching properties for agent:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// (2) Get details for a specific property that is assigned to the agent
-app.get('/agent/property/:id', isAgentAuthenticated, async (req, res) => {
-  const { id } = req.params;
-  const agentID = req.session.agent.AgentID;
+  const agentId = req.session.agent.AgentID;
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM Property WHERE PropertyID = ? AND AssignedAgentID = ?',
-      [id, agentID]
+      'SELECT * FROM Property WHERE AssignedAgentID = ?', [agentId]
     );
-    if (rows.length > 0) {
-      res.json(rows[0]);
-    } else {
-      res.status(404).json({ message: 'Property not found or not assigned to you' });
-    }
-  } catch (error) {
-    console.error('Error fetching property details:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching properties' });
   }
 });
 
-// (3) Update property status (e.g., mark as sold or rented)
-// We expect a JSON payload { status: "sold" } or { status: "rented" }.
-app.put('/agent/property/:id/status', isAgentAuthenticated, async (req, res) => {
+// Mark a property as sold or rented
+app.post('/agent/property/:id/mark', isAgentAuthenticated, async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body; 
-  const agentID = req.session.agent.AgentID;
+  const { status, marketTime } = req.body;
+  const agentId = req.session.agent.AgentID;
+
   try {
-    if (status !== 'sold' && status !== 'rented') {
-      return res.status(400).json({ message: 'Invalid status. Must be "sold" or "rented".' });
+    const [properties] = await pool.query(
+      'SELECT * FROM Property WHERE PropertyID = ? AND AssignedAgentID = ?', [id, agentId]
+    );
+    if (!properties.length) {
+      return res.status(404).json({ message: 'Property not found or not assigned to you' });
     }
 
-    // Update the property status accordingly.
-    let updateQuery = '';
-    if (status === 'sold') {
-      updateQuery = 'UPDATE Property SET IsAvailableForSale = false WHERE PropertyID = ? AND AssignedAgentID = ?';
-    } else if (status === 'rented') {
-      updateQuery = 'UPDATE Property SET IsAvailableForRent = false WHERE PropertyID = ? AND AssignedAgentID = ?';
+    const property = properties[0];
+
+    if (status === 'sold' && property.IsAvailableForSale) {
+      await pool.query('UPDATE Property SET IsAvailableForSale = false WHERE PropertyID = ?', [id]);
+
+      await pool.query(
+        `INSERT INTO Sales (PropertyID, AgentID, OwnerID, SalePrice, SaleDate, MarketTime)
+         VALUES (?, ?, ?, ?, NOW(), ?)`,
+        [id, agentId, property.OwnerID, property.SellingPrice, marketTime]
+      );
+
+      return res.json({ message: 'Property marked as sold.' });
     }
 
-    const [result] = await pool.query(updateQuery, [id, agentID]);
-    if (result.affectedRows > 0) {
-      res.json({ message: `Property marked as ${status}` });
-    } else {
-      res.status(404).json({ message: 'Property not found or not assigned to you' });
+    if (status === 'rented' && property.IsAvailableForRent) {
+      await pool.query('UPDATE Property SET IsAvailableForRent = false WHERE PropertyID = ?', [id]);
+
+      await pool.query(
+        `INSERT INTO Rental (PropertyID, AgentID, OwnerID, RentAmount, RentalStartDate, MarketTime)
+         VALUES (?, ?, ?, ?, NOW(), ?)`,
+        [id, agentId, property.OwnerID, property.RentAmount, marketTime]
+      );
+
+      return res.json({ message: 'Property marked as rented.' });
     }
-  } catch (error) {
-    console.error('Error updating property status:', error);
-    res.status(500).json({ message: 'Internal server error' });
+
+    res.status(400).json({ message: 'Invalid operation or already updated' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error updating property status' });
   }
 });
 
-// =====================
-// Start the Agent Server
-// =====================
-
-const AGENT_PORT = process.env.AGENT_PORT || 3002;
-app.listen(AGENT_PORT, () => {
-  console.log(`Agent backend server running on port ${AGENT_PORT}`);
+// Start the server
+const PORT = 3002;
+app.listen(PORT, () => {
+  console.log(`Agent backend running on http://localhost:${PORT}`);
 });
