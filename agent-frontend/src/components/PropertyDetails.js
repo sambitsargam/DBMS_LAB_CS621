@@ -1,78 +1,60 @@
-// src/components/PropertyDetails.js
-import React, { useState, useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 function PropertyDetails() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [property, setProperty] = useState(null);
-  const [status, setStatus] = useState(''); // "sold" or "rented"
+  const [status, setStatus] = useState('');
+  const [marketTime, setMarketTime] = useState('');
   const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const fetchPropertyDetails = async () => {
+  const fetchProperty = async () => {
     try {
-      const res = await axios.get(`http://localhost:3002/agent/property/${id}`, { withCredentials: true });
-      setProperty(res.data);
-    } catch (err) {
-      console.error('Error fetching property details:', err);
-      setError('Property not found or not assigned to you.');
+      const res = await axios.get('http://localhost:4000/agent/properties', { withCredentials: true });
+      const prop = res.data.find(p => p.PropertyID.toString() === id);
+      if (!prop) navigate('/dashboard');
+      setProperty(prop);
+    } catch {
+      navigate('/');
     }
   };
 
   useEffect(() => {
-    fetchPropertyDetails();
-  }, [id]);
+    fetchProperty();
+  }, []);
 
-  const handleStatusUpdate = async () => {
-    if (!status) return;
+  const handleUpdate = async () => {
     try {
-      const res = await axios.put(`http://localhost:3002/agent/property/${id}/status`, { status }, { withCredentials: true });
+      const res = await axios.post(`http://localhost:4000/agent/property/${id}/mark`, { status, marketTime }, { withCredentials: true });
       setMessage(res.data.message);
-      fetchPropertyDetails();
+      fetchProperty();
     } catch (err) {
-      console.error('Error updating status:', err);
-      setError('Failed to update property status.');
+      setMessage('Error updating status');
     }
   };
 
   return (
     <div className="container-box">
-      <nav className="navbar">
-        <ul>
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/properties">My Properties</Link></li>
-        </ul>
-      </nav>
-      <h2>Property Details</h2>
-      {error && <p className="error">{error}</p>}
       {property && (
-        <div>
-          <p><strong>Property ID:</strong> {property.PropertyID}</p>
-          <p><strong>Address:</strong> {property.Address}</p>
-          <p><strong>City:</strong> {property.City}</p>
-          <p><strong>Locality:</strong> {property.Locality}</p>
-          <p>
-            <strong>Status:</strong> {property.IsAvailableForSale ? "For Sale" : "Sold"} / {property.IsAvailableForRent ? "For Rent" : "Rented"}
-          </p>
-          <div className="mb-3">
-            <label>Update Status:</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="form-select"
-            >
-              <option value="">Select status</option>
-              <option value="sold">Mark as Sold</option>
-              <option value="rented">Mark as Rented</option>
-            </select>
-          </div>
-          <button onClick={handleStatusUpdate} className="btn btn-primary">Update Status</button>
-          {message && <p className="mt-2 text-success">{message}</p>}
-        </div>
+        <>
+          <h3>Property #{property.PropertyID}</h3>
+          <p><strong>Address:</strong> {property.Address}, {property.City}, {property.Locality}</p>
+          <p><strong>Status:</strong> {property.IsAvailableForSale ? 'For Sale' : 'Sold'} / {property.IsAvailableForRent ? 'For Rent' : 'Rented'}</p>
+
+          <select className="form-select mb-2" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="">Select Status</option>
+            {property.IsAvailableForSale && <option value="sold">Mark as Sold</option>}
+            {property.IsAvailableForRent && <option value="rented">Mark as Rented</option>}
+          </select>
+
+          <input type="number" className="form-control mb-2" placeholder="Market time (in days)" value={marketTime} onChange={(e) => setMarketTime(e.target.value)} />
+          <button className="btn btn-primary" onClick={handleUpdate}>Submit</button>
+          {message && <p className="mt-2">{message}</p>}
+        </>
       )}
-      <button onClick={() => navigate(-1)} className="btn btn-secondary mt-3">Back</button>
     </div>
   );
 }

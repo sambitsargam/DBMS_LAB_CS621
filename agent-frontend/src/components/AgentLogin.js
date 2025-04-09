@@ -1,4 +1,4 @@
-// src/components/AgentLogin.js
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -12,12 +12,10 @@ function AgentLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3002/agent/login', { email, contact }, { withCredentials: true });
-      if (res.data.message === 'Agent login successful') {
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      setError('Invalid login credentials');
+      await axios.post('http://localhost:4000/agent/login', { email, contact }, { withCredentials: true });
+      navigate('/dashboard');
+    } catch {
+      setError('Invalid credentials');
     }
   };
 
@@ -26,15 +24,9 @@ function AgentLogin() {
       <h2>Agent Login</h2>
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
-        <div className="form-group mb-2">
-          <label>Email:</label>
-          <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div className="form-group mb-2">
-          <label>Contact (Password):</label>
-          <input type="password" className="form-control" value={contact} onChange={(e) => setContact(e.target.value)} required />
-        </div>
-        <button type="submit" className="btn btn-primary">Login</button>
+        <input type="email" className="form-control mb-2" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input type="password" className="form-control mb-3" placeholder="Contact (as password)" value={contact} onChange={(e) => setContact(e.target.value)} required />
+        <button className="btn btn-primary">Login</button>
       </form>
     </div>
   );
